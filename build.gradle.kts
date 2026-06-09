@@ -8,7 +8,7 @@ group = "appdatabase"
 version = "1.0.0-SNAPSHOT"
 
 application {
-    mainClass = "io.ktor.server.netty.EngineMain"
+    mainClass.set("appdatabase.ApplicationKt")
 }
 
 kotlin {
@@ -34,6 +34,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:0.54.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.54.0")
     implementation("org.postgresql:postgresql:42.7.4")
-
+    implementation("io.ktor:ktor-server-status-pages-jvm")
+    implementation("org.mindrot:jbcrypt:0.4")
     implementation("ch.qos.logback:logback-classic:1.5.6")
 }

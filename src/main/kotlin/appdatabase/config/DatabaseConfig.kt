@@ -1,20 +1,17 @@
-package com.appdatabase.config
+package appdatabase.config
 
-import com.appdatabase.data.database.ProgramsTable
-import com.appdatabase.data.database.UsersTable
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.transaction
+
 
 fun configureDatabase() {
-    Database.connect(
-        url = "jdbc:postgresql://localhost:5432/project_db",
-        driver = "org.postgresql.Driver",
-        user = "postgres",
-        password = "tu_password"
-    )
+    val dbUrl = System.getenv("DB_URL")
+    val dbUser = System.getenv("DB_USER")
+    val dbPassword = System.getenv("DB_PASSWORD")
 
-    transaction {
-        SchemaUtils.create(UsersTable, ProgramsTable)
-    }
+    Database.connect(
+        url = dbUrl,
+        driver = "org.postgresql.Driver",
+        user = dbUser,
+        password = dbPassword
+    )
 }

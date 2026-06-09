@@ -1,4 +1,4 @@
-package com.appdatabase.domain.service
+package appdatabase.domain.service
 
 import com.appdatabase.data.dto.ProgramDto
 import com.appdatabase.data.repository.ProgramRepository

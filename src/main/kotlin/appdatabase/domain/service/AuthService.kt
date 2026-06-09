@@ -1,12 +1,12 @@
 package com.appdatabase.domain.service
 
-import com.appdatabase.config.JwtConfig
+import appdatabase.config.JwtConfig
+import com.appdatabase.data.database.UsersTable
 import com.appdatabase.data.dto.AuthResponse
 import com.appdatabase.data.dto.LoginRequest
 import com.appdatabase.data.dto.RegisterRequest
 import com.appdatabase.data.repository.UserRepository
-import com.appdatabase.data.database.UsersTable
-
+import appdatabase.security.PasswordHasher
 
 class AuthService(
     private val userRepository: UserRepository = UserRepository()
@@ -19,9 +19,11 @@ class AuthService(
             throw IllegalArgumentException("El usuario ya existe")
         }
 
+        val hashedPassword = PasswordHasher.hashPassword(request.password)
+
         val userId = userRepository.createUser(
             username = request.username,
-            password = request.password,
+            password = hashedPassword,
             role = request.role
         )
 
@@ -41,9 +43,14 @@ class AuthService(
         val user = userRepository.findByUsername(request.username)
             ?: throw IllegalArgumentException("Usuario no encontrado")
 
-        val storedPassword = user[UsersTable.password]
+        val storedHashedPassword = user[UsersTable.password]
 
-        if (storedPassword != request.password) {
+        val isPasswordValid = PasswordHasher.verifyPassword(
+            password = request.password,
+            hashedPassword = storedHashedPassword
+        )
+
+        if (!isPasswordValid) {
             throw IllegalArgumentException("Contraseña incorrecta")
         }
 

@@ -1,6 +1,6 @@
 package com.appdatabase.routes
 
-import com.appdatabase.config.JwtConfig
+import appdatabase.config.JwtConfig
 import com.appdatabase.data.database.UsersTable
 import com.appdatabase.data.dto.AuthResponse
 import com.appdatabase.data.dto.LoginRequest
