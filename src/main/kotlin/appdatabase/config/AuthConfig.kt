@@ -4,8 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.response.respond
 
 fun Application.configureAuthentication() {
@@ -24,7 +24,7 @@ fun Application.configureAuthentication() {
                     .getClaim("role")
                     .asString()
 
-                if (userId.isNotBlank() && role.isNotBlank()) {
+                if (!userId.isNullOrBlank() && !role.isNullOrBlank()) {
                     JWTPrincipal(credential.payload)
                 } else {
                     null
@@ -34,7 +34,7 @@ fun Application.configureAuthentication() {
             challenge { _, _ ->
                 call.respond(
                     HttpStatusCode.Unauthorized,
-                    mapOf("error" to "Token inválido o expirado")
+                    mapOf("error" to "Token invalido o expirado")
                 )
             }
         }

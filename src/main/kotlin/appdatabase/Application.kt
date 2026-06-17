@@ -3,8 +3,8 @@ package appdatabase
 
 import appdatabase.config.configureDatabase
 import appdatabase.config.configureAuthentication
-import com.appdatabase.routes.authRoutes
-import com.appdatabase.routes.programRoutes
+import appdatabase.routes.authRoutes
+import appdatabase.routes.programRoutes
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.serialization.kotlinx.json.*
@@ -26,6 +26,8 @@ fun Application.module() {
     configureSerialization()
     configureDatabase()
     configureAuthentication()
+
+    configureRouting()
 
     routing {
         authRoutes()

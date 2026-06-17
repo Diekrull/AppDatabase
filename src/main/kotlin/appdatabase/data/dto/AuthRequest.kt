@@ -1,2 +1,2 @@
-package com.appdatabase.data.dto
+package appdatabase.data.dto
 

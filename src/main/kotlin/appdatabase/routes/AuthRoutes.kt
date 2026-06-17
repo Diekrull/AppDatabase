@@ -1,73 +1,65 @@
-package com.appdatabase.routes
+package appdatabase.routes
 
-import appdatabase.config.JwtConfig
-import com.appdatabase.data.database.UsersTable
-import com.appdatabase.data.dto.AuthResponse
-import com.appdatabase.data.dto.LoginRequest
-import com.appdatabase.data.dto.RegisterRequest
-import com.appdatabase.data.repository.UserRepository
+import appdatabase.data.dto.AuthResponse
+import appdatabase.data.dto.LoginRequest
+import appdatabase.data.dto.RegisterRequest
+import appdatabase.data.dto.toDto
+import appdatabase.service.AuthService
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.authRoutes() {
-    val repository = UserRepository()
+
+    val authService = AuthService()
 
     route("/v1/auth") {
 
         post("/register") {
-            val request = call.receive<RegisterRequest>()
+            val request =
+                call.receive<RegisterRequest>()
 
-            val userId = repository.createUser(
-                username = request.username,
-                password = request.password,
-                role = request.role
-            )
+            try {
+                val user =
+                    authService.register(request)
 
-            val token = JwtConfig.generateToken(
-                userId = userId.toString(),
-                role = request.role
-            )
-
-            call.respond(
-                HttpStatusCode.Created,
-                AuthResponse(
-                    token = token,
-                    userId = userId.toString(),
-                    role = request.role
+                call.respond(
+                    HttpStatusCode.Created,
+                    user.toDto()
                 )
-            )
+            } catch (e: IllegalArgumentException) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to e.message)
+                )
+            }
         }
 
         post("/login") {
-            val request = call.receive<LoginRequest>()
-            val user = repository.findByUsername(request.username)
+            val request =
+                call.receive<LoginRequest>()
 
-            if (user == null) {
-                call.respond(HttpStatusCode.Unauthorized, "Usuario no encontrado")
-                return@post
-            }
+            try {
+                val user =
+                    authService.login(request)
 
-            val storedPassword = user[UsersTable.password]
+                val token =
+                    authService.generateToken(user)
 
-            if (storedPassword != request.password) {
-                call.respond(HttpStatusCode.Unauthorized, "Contraseña incorrecta")
-                return@post
-            }
-
-            val userId = user[UsersTable.id].toString()
-            val role = user[UsersTable.role]
-
-            val token = JwtConfig.generateToken(userId, role)
-
-            call.respond(
-                AuthResponse(
-                    token = token,
-                    userId = userId,
-                    role = role
+                call.respond(
+                    AuthResponse(
+                        token = token,
+                        userId = user.id.toString(),
+                        role = user.role
+                    )
                 )
-            )
+            } catch (e: IllegalArgumentException) {
+                call.respond(
+                    HttpStatusCode.Unauthorized,
+                    mapOf("error" to e.message)
+                )
+            }
         }
     }
 }
