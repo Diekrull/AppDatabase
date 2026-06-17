@@ -2,11 +2,9 @@ package appdatabase.data.dto
 
 import kotlinx.serialization.Serializable
 
-// Programa expuesto por HTTP.
+// Datos que el cliente envia para crear un programa.
 @Serializable
-data class ProgramDto(
-    val id: String,
-    val userId: String,
+data class CreateProgramRequest(
     val name: String,
     val goal: String,
     val durationWeeks: Int

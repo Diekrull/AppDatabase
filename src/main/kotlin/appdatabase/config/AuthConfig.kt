@@ -1,5 +1,6 @@
 package appdatabase.config
 
+import appdatabase.data.dto.ErrorResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -9,6 +10,7 @@ import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.response.respond
 
 fun Application.configureAuthentication() {
+    // Valida tokens JWT emitidos por JwtConfig para rutas protegidas.
     install(Authentication) {
         jwt("auth-jwt") {
             realm = JwtConfig.realm
@@ -34,7 +36,7 @@ fun Application.configureAuthentication() {
             challenge { _, _ ->
                 call.respond(
                     HttpStatusCode.Unauthorized,
-                    mapOf("error" to "Token invalido o expirado")
+                    ErrorResponse(error = "Token invalido o expirado")
                 )
             }
         }

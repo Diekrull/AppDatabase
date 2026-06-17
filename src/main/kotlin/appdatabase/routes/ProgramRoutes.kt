@@ -1,7 +1,8 @@
 package appdatabase.routes
 
 import appdatabase.data.dto.CreateProgramRequest
-import appdatabase.data.dto.toDto
+import appdatabase.data.dto.ErrorResponse
+import appdatabase.data.mapper.toDto
 import appdatabase.service.ProgramService
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -11,10 +12,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.util.UUID
 
-fun Route.programRoutes() {
-
-    val programService =
-        ProgramService()
+// Capa Routes: endpoints protegidos por JWT para crear/listar programas del usuario.
+fun Route.programRoutes(programService: ProgramService) {
 
     authenticate("auth-jwt") {
         route("/v1/programs") {
@@ -22,34 +21,35 @@ fun Route.programRoutes() {
             post {
                 val userId =
                     call.userIdFromToken()
-                        ?: return@post call.respond(HttpStatusCode.Unauthorized)
+                        ?: return@post call.respond(
+                            HttpStatusCode.Unauthorized,
+                            ErrorResponse(error = "Token invalido o expirado")
+                        )
 
                 val request =
                     call.receive<CreateProgramRequest>()
 
-                try {
-                    val program =
-                        programService.createProgram(
-                            userId = userId,
-                            request = request
-                        )
+                val program =
+                    programService.createProgram(
+                        userId = userId,
+                        name = request.name,
+                        goal = request.goal,
+                        durationWeeks = request.durationWeeks
+                    )
 
-                    call.respond(
-                        HttpStatusCode.Created,
-                        program.toDto()
-                    )
-                } catch (e: IllegalArgumentException) {
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        mapOf("error" to e.message)
-                    )
-                }
+                call.respond(
+                    HttpStatusCode.Created,
+                    program.toDto()
+                )
             }
 
             get {
                 val userId =
                     call.userIdFromToken()
-                        ?: return@get call.respond(HttpStatusCode.Unauthorized)
+                        ?: return@get call.respond(
+                            HttpStatusCode.Unauthorized,
+                            ErrorResponse(error = "Token invalido o expirado")
+                        )
 
                 val programs =
                     programService
@@ -63,11 +63,12 @@ fun Route.programRoutes() {
 }
 
 private fun RoutingCall.userIdFromToken(): UUID? {
+    // Extrae el userId que JwtConfig guardo como claim en el token.
     val userId =
         principal<JWTPrincipal>()
             ?.payload
             ?.getClaim("userId")
             ?.asString()
 
-    return userId?.let { UUID.fromString(it) }
+    return userId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
 }

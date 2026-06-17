@@ -3,6 +3,7 @@ package appdatabase.config
 import org.jetbrains.exposed.sql.Database
 
 fun configureDatabase() {
+    // Conexion directa a PostgreSQL. Las credenciales vienen desde Android Studio o el entorno.
     val dbUrl =
         env("DB_URL")
             ?: error("Falta configurar DB_URL")
@@ -29,6 +30,7 @@ private fun env(vararg names: String): String? =
     }
 
 private fun normalizePostgresUrl(dbUrl: String): String {
+    // Neon puede entregar URL postgres/postgresql; Exposed necesita jdbc:postgresql.
     val jdbcUrl =
         when {
             dbUrl.startsWith("jdbc:postgresql:") -> dbUrl

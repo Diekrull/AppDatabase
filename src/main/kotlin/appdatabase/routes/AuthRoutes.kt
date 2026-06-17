@@ -1,18 +1,17 @@
 package appdatabase.routes
 
-import appdatabase.data.dto.AuthResponse
 import appdatabase.data.dto.LoginRequest
+import appdatabase.data.dto.LoginResponse
 import appdatabase.data.dto.RegisterRequest
-import appdatabase.data.dto.toDto
+import appdatabase.data.mapper.toDto
 import appdatabase.service.AuthService
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.authRoutes() {
-
-    val authService = AuthService()
+// Capa Routes: expone endpoints HTTP y delega reglas a AuthService.
+fun Route.authRoutes(authService: AuthService) {
 
     route("/v1/auth") {
 
@@ -20,46 +19,39 @@ fun Route.authRoutes() {
             val request =
                 call.receive<RegisterRequest>()
 
-            try {
-                val user =
-                    authService.register(request)
+            val user =
+                authService.register(
+                    username = request.username,
+                    password = request.password,
+                    role = request.role
+                )
 
-                call.respond(
-                    HttpStatusCode.Created,
-                    user.toDto()
-                )
-            } catch (e: IllegalArgumentException) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    mapOf("error" to e.message)
-                )
-            }
+            call.respond(
+                HttpStatusCode.Created,
+                user.toDto()
+            )
         }
 
         post("/login") {
             val request =
                 call.receive<LoginRequest>()
 
-            try {
-                val user =
-                    authService.login(request)
-
-                val token =
-                    authService.generateToken(user)
-
-                call.respond(
-                    AuthResponse(
-                        token = token,
-                        userId = user.id.toString(),
-                        role = user.role
-                    )
+            val user =
+                authService.login(
+                    username = request.username,
+                    password = request.password
                 )
-            } catch (e: IllegalArgumentException) {
-                call.respond(
-                    HttpStatusCode.Unauthorized,
-                    mapOf("error" to e.message)
+
+            val token =
+                authService.generateToken(user)
+
+            call.respond(
+                LoginResponse(
+                    token = token,
+                    userId = user.id.toString(),
+                    role = user.role
                 )
-            }
+            )
         }
     }
 }

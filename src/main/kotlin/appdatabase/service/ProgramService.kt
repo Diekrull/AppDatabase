@@ -1,35 +1,38 @@
 package appdatabase.service
 
-import appdatabase.data.dto.CreateProgramRequest
-import appdatabase.data.repository.ProgramRepository
 import appdatabase.domain.model.Program
+import appdatabase.domain.repository.ProgramRepositoryContract
 import java.util.UUID
 
+// Capa Service: valida reglas de programas y delega persistencia al repositorio.
 class ProgramService(
-    private val programRepository: ProgramRepository = ProgramRepository()
+    private val programRepository: ProgramRepositoryContract
 ) {
 
     fun createProgram(
         userId: UUID,
-        request: CreateProgramRequest
+        name: String,
+        goal: String,
+        durationWeeks: Int
     ): Program {
-        if (request.name.isBlank()) {
+        // Las rutas reciben HTTP; las reglas de negocio viven aqui.
+        if (name.isBlank()) {
             throw IllegalArgumentException("Nombre vacio")
         }
 
-        if (request.goal.isBlank()) {
+        if (goal.isBlank()) {
             throw IllegalArgumentException("Objetivo vacio")
         }
 
-        if (request.durationWeeks <= 0) {
+        if (durationWeeks <= 0) {
             throw IllegalArgumentException("La duracion debe ser mayor a 0")
         }
 
         return programRepository.createProgram(
             userId = userId,
-            name = request.name,
-            goal = request.goal,
-            durationWeeks = request.durationWeeks
+            name = name,
+            goal = goal,
+            durationWeeks = durationWeeks
         )
     }
 
